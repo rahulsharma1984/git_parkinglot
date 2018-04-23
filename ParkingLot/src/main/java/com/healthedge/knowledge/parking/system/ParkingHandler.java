@@ -29,9 +29,12 @@ public class ParkingHandler {
 		exitService.execute(exitPathProcessor);
 
 		long startTime = System.currentTimeMillis();
+		Parking entryCarClosed = null;
 
 		while (true) {
 			try {
+				System.out.println("Total Number of Spaces in Parking are:" + entryPathProcessor.displayTotalSpaces()
+						+ ": and available spaces are:" + exitPathProcessor.getAvailableSpaces());
 				Random r = new Random();
 				int lowNumber = 1000;
 				int highNumber = 10000;
@@ -48,6 +51,11 @@ public class ParkingHandler {
 
 					int availableSpaces = exitPathProcessor.getAvailableSpaces();
 
+					if (entryCarClosed != null && availableSpaces == entryPathProcessor.displayTotalSpaces()) {
+						System.out.println("All the cars have exited and Entry time is closed. Parking is shut down.");
+						break;
+					}
+
 					if (availableSpaces < entryPathProcessor.displayTotalSpaces()) {
 						Parking exitCar = new Parking(0);
 						exitQueue.put(exitCar);
@@ -55,12 +63,9 @@ public class ParkingHandler {
 					}
 				}
 
-				System.out.println("Total Number of Spaces in Parking are:" + entryPathProcessor.displayTotalSpaces()
-						+ ": and available spaces are:" + exitPathProcessor.getAvailableSpaces());
-
 				long currentTime = System.currentTimeMillis();
-				if (currentTime - startTime > 15 * 1000) {
-					Parking entryCarClosed = new Parking(1);
+				if (entryCarClosed == null && currentTime - startTime > 120 * 1000) {
+					entryCarClosed = new Parking(1);
 					entryCarClosed.setEntryClosed(true);
 					entryQueue.put(entryCarClosed);
 					entryService.shutdown();
